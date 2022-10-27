@@ -7,7 +7,7 @@ router.post("/register", async (req, res) => {
     const newUser = new User({
         username:req.body.username,
         email:req.body.email,
-        password:CryptoJS.AES.encrypt(req.body.password, 'secre-war').toString(),
+        password:CryptoJS.AES.encrypt(req.body.password, 'password').toString(),
     });
     console.log(newUser)
     try{
@@ -18,6 +18,26 @@ router.post("/register", async (req, res) => {
     }
 
 });
+
+//LOGIN
+router.post("/login", async (req, res) => {
+    try{
+        const user = await User.findOne({ email:req.body.email });
+        !user && res.status(401).json("Wrong username!")
+
+        const bytes = CryptoJS.AES.decrypt(user.password, 'password');
+        const originalPassword = bytes.toString(CryptoJS.enc.Utf8);
+
+
+        originalPassword !== req.body.password && res.status(401).json("Wrong password!");
+        const {password, ...info } = user._doc;
+
+
+        res.status(200).json(info);
+    }catch(err){
+        res.status(500).json(err)
+    }
+})
 
 
 
